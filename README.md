@@ -7,8 +7,7 @@ Mimalloc is a general purpose, performance oriented allocator built by Microsoft
 
 ## What is better_mimalloc_rs
 
-This is a forked and locally vendored variant of `mimalloc_rust` used by
-`proxy-everything`. It keeps the Rust API compatible while allowing us to:
+This is a forked and locally vendored variant of `mimalloc_rust`. It keeps the Rust API compatible while allowing us to:
 
 - Pin the C allocator to a specific fork (`https://github.com/acking-you/mimalloc`)
 - Expose allocator tuning options that affect RSS behavior
