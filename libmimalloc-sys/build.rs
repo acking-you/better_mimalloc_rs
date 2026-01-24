@@ -1,5 +1,29 @@
 use std::env;
 use std::path::Path;
+use std::path::PathBuf;
+
+fn resolve_mimalloc_root(version: &str) -> PathBuf {
+    if let Ok(root) = env::var("MIMALLOC_SRC") {
+        return PathBuf::from(root);
+    }
+
+    let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
+    let manifest_dir = Path::new(&cargo_manifest_dir);
+
+    let versioned_root = manifest_dir.join("c_src/mimalloc").join(version);
+    if versioned_root.join("include").is_dir() {
+        return versioned_root;
+    }
+
+    let flat_root = manifest_dir.join("c_src/mimalloc");
+    if flat_root.join("include").is_dir() {
+        return flat_root;
+    }
+
+    panic!(
+        "mimalloc source not found. Set MIMALLOC_SRC or clone https://github.com/acking-you/mimalloc into c_src/mimalloc"
+    );
+}
 
 fn main() {
     let mut build = cc::Build::new();
@@ -10,21 +34,29 @@ fn main() {
         "v2"
     };
 
-    let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
-    let include_dir = Path::new(&cargo_manifest_dir)
-        .join("c_src/mimalloc/")
-        .join(version)
+    println!("cargo:rerun-if-env-changed=MIMALLOC_SRC");
+
+    let root = resolve_mimalloc_root(version);
+    let include_dir = root
         .join("include")
         .to_str()
         .expect("include path is not valid UTF-8")
         .to_string();
+    let src_dir = root.join("src");
+    let static_file = src_dir.join("static.c");
+    if !src_dir.is_dir() || !static_file.is_file() {
+        panic!(
+            "mimalloc source is missing src/static.c in {}",
+            root.display()
+        );
+    }
     // Make the include directory available to consumers via the `DEP_MIMALLOC_INCLUDE_DIR`
     // environment variable.
     println!("cargo:INCLUDE_DIR={include_dir}");
 
-    build.include(format!("c_src/mimalloc/{version}/include"));
-    build.include(format!("c_src/mimalloc/{version}/src"));
-    build.file(format!("c_src/mimalloc/{version}/src/static.c"));
+    build.include(&include_dir);
+    build.include(&src_dir);
+    build.file(&static_file);
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");

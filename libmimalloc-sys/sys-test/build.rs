@@ -1,7 +1,32 @@
 use std::env;
+use std::path::Path;
+use std::path::PathBuf;
+
+fn resolve_mimalloc_include(version: &str) -> PathBuf {
+    if let Ok(root) = env::var("MIMALLOC_SRC") {
+        return PathBuf::from(root).join("include");
+    }
+
+    let cargo_manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let manifest_dir = Path::new(cargo_manifest_dir);
+
+    let versioned_root = manifest_dir.join(format!("../c_src/mimalloc/{version}/include"));
+    if versioned_root.is_dir() {
+        return versioned_root;
+    }
+
+    let flat_root = manifest_dir.join("../c_src/mimalloc/include");
+    if flat_root.is_dir() {
+        return flat_root;
+    }
+
+    panic!(
+        "mimalloc source not found. Set MIMALLOC_SRC or clone https://github.com/acking-you/mimalloc into c_src/mimalloc"
+    );
+}
 
 fn main() {
-    let cargo_manifest_dir = env!("CARGO_MANIFEST_DIR");
+    println!("cargo:rerun-if-env-changed=MIMALLOC_SRC");
     let secure = if env::var("CARGO_FEATURE_SECURE").is_ok() {
         Some("secure")
     } else {
@@ -19,10 +44,10 @@ fn main() {
     };
 
     let mut cfg = ctest2::TestGenerator::new();
+    let include_dir = resolve_mimalloc_include(version);
+
     cfg.header("mimalloc.h")
-        .include(format!(
-            "{cargo_manifest_dir}/../c_src/mimalloc/{version}/include"
-        ))
+        .include(include_dir)
         .cfg("feature", secure)
         .cfg("feature", extended)
         .cfg("feature", (version == "v3").then_some("v3"))

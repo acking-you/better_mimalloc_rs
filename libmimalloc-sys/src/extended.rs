@@ -487,6 +487,16 @@ pub const mi_option_show_stats: mi_option_t = 1;
 /// Print verbose messages to `stderr`.
 pub const mi_option_verbose: mi_option_t = 2;
 
+/// Option (experimental) eager commit entire segments.
+/// See mimalloc.h for details.
+pub const mi_option_eager_commit: mi_option_t = 3;
+
+/// Option (experimental) eager commit arenas (0/1/2).
+pub const mi_option_arena_eager_commit: mi_option_t = 4;
+
+/// Option (experimental) purge uses decommit instead of reset.
+pub const mi_option_purge_decommits: mi_option_t = 5;
+
 /// ### The following options are experimental
 ///
 /// Option (experimental) Use large OS pages (2MiB in size) if possible.
@@ -527,6 +537,9 @@ pub const mi_option_reserve_os_memory: mi_option_t = 9;
 /// Option (experimental) the first N segments per thread are not eagerly committed (=1).
 pub const mi_option_eager_commit_delay: mi_option_t = 14;
 
+/// Option (experimental) memory purging is delayed by N milli seconds.
+pub const mi_option_purge_delay: mi_option_t = 15;
+
 /// Option (experimental) Pretend there are at most N NUMA nodes; Use 0 to use the actual detected NUMA nodes at runtime.
 pub const mi_option_use_numa_nodes: mi_option_t = 16;
 
@@ -545,6 +558,15 @@ pub const mi_option_max_warnings: mi_option_t = 20;
 #[cfg(not(feature = "v3"))]
 /// Option (experimental)
 pub const mi_option_max_segment_reclaim: mi_option_t = 21;
+
+/// Option (experimental) multiplier for purge delay in arenas.
+pub const mi_option_arena_purge_mult: mi_option_t = 24;
+
+/// Option (experimental) extend purge delay on repeated frees.
+pub const mi_option_purge_extend_delay: mi_option_t = 25;
+
+/// Option (experimental) collect heaps every N generic allocations.
+pub const mi_option_generic_collect: mi_option_t = 36;
 
 /// Last option.
 #[cfg(not(feature = "v3"))]
@@ -1018,6 +1040,7 @@ extern "C" {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::mi_malloc;
 
     #[test]
     fn it_calculates_usable_size() {

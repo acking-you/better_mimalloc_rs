@@ -29,6 +29,11 @@ extern crate libmimalloc_sys as ffi;
 
 #[cfg(feature = "extended")]
 mod extended;
+#[cfg(feature = "config")]
+pub mod config;
+
+#[cfg(feature = "config")]
+pub use config::MiMallocConfig;
 
 use core::alloc::{GlobalAlloc, Layout};
 use core::ffi::c_void;
@@ -44,6 +49,22 @@ use ffi::*;
 /// static GLOBAL: MiMalloc = MiMalloc;
 /// ```
 pub struct MiMalloc;
+
+impl MiMalloc {
+    /// Apply compile-time allocator configuration (if enabled).
+    #[inline]
+    pub fn init() {
+        #[cfg(feature = "config")]
+        crate::config::apply_build();
+    }
+
+    /// Apply a custom runtime configuration (if enabled).
+    #[cfg(feature = "config")]
+    #[inline]
+    pub fn init_with(config: &MiMallocConfig) {
+        config.apply();
+    }
+}
 
 unsafe impl GlobalAlloc for MiMalloc {
     #[inline]

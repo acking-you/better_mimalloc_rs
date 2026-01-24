@@ -13,13 +13,7 @@ categories = ["memory-management", "api-bindings"]
 description = "Performance and security oriented drop-in allocator"
 license = "MIT"
 readme = "README.md"
-
-[workspace]
-members = [
-    "libmimalloc-sys",
-    "libmimalloc-sys/sys-test",
-    "test-override-with-dylib",
-]
+build = "build.rs"
 
 [badges]
 travis-ci = { repository = "purpleprotocol/mimalloc_rust" }
@@ -37,3 +31,4 @@ local_dynamic_tls = ["libmimalloc-sys/local_dynamic_tls"]
 no_thp = ["libmimalloc-sys/no_thp"]
 extended = ["libmimalloc-sys/extended"]
 v3 = ["libmimalloc-sys/v3"]
+config = ["extended"]
