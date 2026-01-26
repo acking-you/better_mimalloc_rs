@@ -555,7 +555,6 @@ pub const mi_option_max_errors: mi_option_t = 19;
 /// Option (experimental)
 pub const mi_option_max_warnings: mi_option_t = 20;
 
-#[cfg(not(feature = "v3"))]
 /// Option (experimental)
 pub const mi_option_max_segment_reclaim: mi_option_t = 21;
 
@@ -568,11 +567,11 @@ pub const mi_option_purge_extend_delay: mi_option_t = 25;
 /// Option (experimental) collect heaps every N generic allocations.
 pub const mi_option_generic_collect: mi_option_t = 36;
 
+/// Option (experimental) allow transparent huge pages.
+pub const mi_option_allow_thp: mi_option_t = 37;
+
 /// Last option.
-#[cfg(not(feature = "v3"))]
-pub const _mi_option_last: mi_option_t = 37;
-#[cfg(feature = "v3")]
-pub const _mi_option_last: mi_option_t = 43;
+pub const _mi_option_last: mi_option_t = 38;
 
 extern "C" {
     // Note: mi_option_{enable,disable} aren't exposed because they're redundant
@@ -646,7 +645,7 @@ extern "C" {
 /// # Example
 ///
 /// ```
-/// use libmimalloc_sys as mi;
+/// use better_mimalloc_sys as mi;
 /// unsafe {
 ///     let h = mi::mi_heap_new();
 ///     assert!(!h.is_null());

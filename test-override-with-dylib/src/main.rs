@@ -3,7 +3,7 @@
 use core::ffi::{c_char, c_void, CStr};
 
 // Make sure that `rustc` links this.
-use libmimalloc_sys as _;
+use better_mimalloc_sys as _;
 
 extern "C-unwind" {
     fn dep_lookup_malloc_address() -> *const c_char;
@@ -35,15 +35,15 @@ fn main() {
     // If overidden, test that the same is true for `mi_malloc` being
     // interoperable with `free`.
     if cfg!(feature = "override") {
-        let ptr = unsafe { libmimalloc_sys::mi_malloc(10) };
+        let ptr = unsafe { better_mimalloc_sys::mi_malloc(10) };
         unsafe { dep_free(ptr) };
-        let ptr = unsafe { libmimalloc_sys::mi_malloc(10) };
+        let ptr = unsafe { better_mimalloc_sys::mi_malloc(10) };
         unsafe { libc::free(ptr) };
 
         let ptr = unsafe { libc::malloc(10) };
-        unsafe { libmimalloc_sys::mi_free(ptr) };
+        unsafe { better_mimalloc_sys::mi_free(ptr) };
         let ptr = unsafe { dep_malloc(10) };
-        unsafe { libmimalloc_sys::mi_free(ptr) };
+        unsafe { better_mimalloc_sys::mi_free(ptr) };
     }
 
     // Extra check that the symbol was actually from the same place.

@@ -2,12 +2,12 @@
 
 #![no_std]
 
-//! A drop-in global allocator wrapper around the [mimalloc](https://github.com/microsoft/mimalloc) allocator.
-//! Mimalloc is a general purpose, performance oriented allocator built by Microsoft.
+//! A drop-in global allocator wrapper around the [mimalloc](https://github.com/acking-you/mimalloc) allocator.
+//! This fork exposes tuning knobs for RSS behavior and tracks the mimalloc dev branch.
 //!
 //! ## Usage
 //! ```rust,ignore
-//! use mimalloc::MiMalloc;
+//! use better_mimalloc_rs::MiMalloc;
 //!
 //! #[global_allocator]
 //! static GLOBAL: MiMalloc = MiMalloc;
@@ -16,16 +16,16 @@
 //! ## Usage with secure mode
 //! Using secure mode adds guard pages,
 //! randomized allocation, encrypted free lists, etc. The performance penalty is usually
-//! around 10% according to [mimalloc's](https://github.com/microsoft/mimalloc)
+//! around 10% according to [mimalloc's](https://github.com/acking-you/mimalloc)
 //! own benchmarks.
 //!
 //! To enable secure mode, put in `Cargo.toml`:
 //! ```rust,ignore
 //! [dependencies]
-//! mimalloc = { version = "*", features = ["secure"] }
+//! better_mimalloc_rs = { version = "*", features = ["secure"] }
 //! ```
 
-extern crate libmimalloc_sys as ffi;
+extern crate better_mimalloc_sys as ffi;
 
 #[cfg(feature = "extended")]
 mod extended;
@@ -43,7 +43,7 @@ use ffi::*;
 ///
 /// ## Usage
 /// ```rust,ignore
-/// use mimalloc::MiMalloc;
+/// use better_mimalloc_rs::MiMalloc;
 ///
 /// #[global_allocator]
 /// static GLOBAL: MiMalloc = MiMalloc;

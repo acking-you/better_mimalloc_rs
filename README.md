@@ -1,66 +1,36 @@
-# Mimalloc Rust
+# better_mimalloc_rs
 
-[![Latest Version]][crates.io] [![Documentation]][docs.rs]
+A drop-in global allocator wrapper around the [mimalloc](https://github.com/acking-you/mimalloc) allocator.
+This fork exposes tuning knobs for RSS behavior and tracks the mimalloc **dev branch** (more aggressive than release).
 
-A drop-in global allocator wrapper around the [mimalloc](https://github.com/microsoft/mimalloc) allocator.
-Mimalloc is a general purpose, performance oriented allocator built by Microsoft.
+## Why "better"
 
-## What is better_mimalloc_rs
-
-This is a forked and locally vendored variant of `mimalloc_rust`. It keeps the Rust API compatible while allowing us to:
-
-- Pin the C allocator to a specific fork (`https://github.com/acking-you/mimalloc`)
-- Expose allocator tuning options that affect RSS behavior
-
-## Why fork
-
-We need predictable, repository-controlled allocator behavior to reproduce and
-adjust RSS characteristics in production. The forked setup lets us:
-
-- Control the exact mimalloc C source version
-- Apply tuning parameters at build time or runtime without patching upstream
+- **More tunable**: upstream Rust bindings expose very few knobs. This crate exposes compile-time and runtime options
+  so you can tune purging/commit behavior and make RSS fall back faster.
+- **Tracks dev branch**: follows the latest mimalloc development branch for newer fixes and behavior (expect churn).
 
 ## Usage
 
 ```rust
-use mimalloc::MiMalloc;
+use better_mimalloc_rs::MiMalloc;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 ```
 
-## Using the forked mimalloc source
-
-This repo expects the C sources under `libmimalloc-sys/c_src/mimalloc`.
-Clone the fork once:
-
-```bash
-git clone https://github.com/acking-you/mimalloc.git libmimalloc-sys/c_src/mimalloc
-```
-
-If you keep the sources elsewhere, set `MIMALLOC_SRC` to the root of that checkout:
-
-```bash
-export MIMALLOC_SRC=/path/to/acking-you/mimalloc
-```
-
-## Requirements
-
-A __C__ compiler is required for building [mimalloc](https://github.com/microsoft/mimalloc) with cargo.
-
-## Configuring RSS-related options
+## RSS tuning (config feature)
 
 Enable the `config` feature to expose runtime/compile-time tuning:
 
 ```ini
 [dependencies]
-mimalloc = { path = "deps/better_mimalloc_rs", features = ["config"] }
+better_mimalloc_rs = { version = "*", features = ["config"] }
 ```
 
 Apply compile-time defaults:
 
 ```rust
-use mimalloc::MiMalloc;
+use better_mimalloc_rs::MiMalloc;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -74,7 +44,7 @@ fn main() {
 Apply runtime overrides:
 
 ```rust
-use mimalloc::{MiMalloc, MiMallocConfig};
+use better_mimalloc_rs::{MiMalloc, MiMallocConfig};
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -89,8 +59,7 @@ fn main() {
 }
 ```
 
-Call `MiMalloc::init()`/`init_with()` before any allocations for deterministic
-behavior.
+Call `MiMalloc::init()`/`init_with()` before any allocations for deterministic behavior.
 
 Compile-time environment variables (optional):
 
@@ -105,31 +74,33 @@ MIMALLOC_CFG_PURGE_EXTEND_DELAY=NUM
 MIMALLOC_CFG_GENERIC_COLLECT=NUM
 ```
 
+## Using the forked mimalloc source
+
+This repo expects the C sources under `libmimalloc-sys/c_src/mimalloc`.
+Initialize the submodule after cloning:
+
+```bash
+git submodule update --init --recursive
+```
+
+If you keep the sources elsewhere, set `MIMALLOC_SRC` to the root of that checkout:
+
+```bash
+export MIMALLOC_SRC=/path/to/acking-you/mimalloc
+```
+
+## Requirements
+
+A __C__ compiler is required for building [mimalloc](https://github.com/acking-you/mimalloc) with cargo.
+
 ## Usage with secure mode
 
-Using secure mode adds guard pages,
-randomized allocation, encrypted free lists, etc. The performance penalty is usually
-around 10% according to [mimalloc](https://github.com/microsoft/mimalloc)
-own benchmarks.
+Using secure mode adds guard pages, randomized allocation, encrypted free lists, etc.
+The performance penalty is usually around 10% according to mimalloc's own benchmarks.
 
 To enable secure mode, put in `Cargo.toml`:
 
 ```ini
 [dependencies]
-mimalloc = { version = "*", features = ["secure"] }
+better_mimalloc_rs = { version = "*", features = ["secure"] }
 ```
-
-## Usage with v3
-
-By default this library uses mimalloc `v2`.
-To enable `v3`, put in `Cargo.toml`:
-
-```ini
-[dependencies]
-mimalloc = { version = "*", features = ["v3"] }
-```
-
-[crates.io]: https://crates.io/crates/mimalloc
-[Latest Version]: https://img.shields.io/crates/v/mimalloc.svg
-[Documentation]: https://docs.rs/mimalloc/badge.svg
-[docs.rs]: https://docs.rs/mimalloc

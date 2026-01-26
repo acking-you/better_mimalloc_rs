@@ -2,7 +2,7 @@ use std::env;
 use std::path::Path;
 use std::path::PathBuf;
 
-fn resolve_mimalloc_root(version: &str) -> PathBuf {
+fn resolve_mimalloc_root() -> PathBuf {
     if let Ok(root) = env::var("MIMALLOC_SRC") {
         return PathBuf::from(root);
     }
@@ -10,33 +10,22 @@ fn resolve_mimalloc_root(version: &str) -> PathBuf {
     let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let manifest_dir = Path::new(&cargo_manifest_dir);
 
-    let versioned_root = manifest_dir.join("c_src/mimalloc").join(version);
-    if versioned_root.join("include").is_dir() {
-        return versioned_root;
-    }
-
     let flat_root = manifest_dir.join("c_src/mimalloc");
     if flat_root.join("include").is_dir() {
         return flat_root;
     }
 
     panic!(
-        "mimalloc source not found. Set MIMALLOC_SRC or clone https://github.com/acking-you/mimalloc into c_src/mimalloc"
+        "mimalloc source not found. Set MIMALLOC_SRC or run `git submodule update --init --recursive` to populate c_src/mimalloc (https://github.com/acking-you/mimalloc)."
     );
 }
 
 fn main() {
     let mut build = cc::Build::new();
 
-    let version = if env::var("CARGO_FEATURE_V3").is_ok() {
-        "v3"
-    } else {
-        "v2"
-    };
-
     println!("cargo:rerun-if-env-changed=MIMALLOC_SRC");
 
-    let root = resolve_mimalloc_root(version);
+    let root = resolve_mimalloc_root();
     let include_dir = root
         .join("include")
         .to_str()

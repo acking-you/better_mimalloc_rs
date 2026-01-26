@@ -1,34 +1,42 @@
 [package]
-name = "mimalloc"
-version = "0.1.48"
+name = "better_mimalloc_rs"
+version = "0.1.0"
 authors = [
     "Octavian Oncescu <octavonce@gmail.com>",
     "Vincent Rouillé <vincent@speedy37.fr>",
     "Thom Chiovoloni <chiovolonit@gmail.com>",
 ]
 edition = "2018"
-repository = "https://github.com/purpleprotocol/mimalloc_rust"
-keywords = ["mimalloc", "allocator", "encrypted-heap", "performance"]
+keywords = ["mimalloc", "allocator", "rss", "tuning", "performance"]
 categories = ["memory-management", "api-bindings"]
-description = "Performance and security oriented drop-in allocator"
+description = "A mimalloc wrapper that exposes tuning knobs and tracks the dev branch"
 license = "MIT"
 readme = "README.md"
 build = "build.rs"
-
-[badges]
-travis-ci = { repository = "purpleprotocol/mimalloc_rust" }
+repository = "https://github.com/acking-you/better_mimalloc_rs"
+homepage = "https://github.com/acking-you/better_mimalloc_rs"
+documentation = "https://docs.rs/better_mimalloc_rs"
+exclude = [
+    "/libmimalloc-sys/c_src/mimalloc/bin",
+    "/libmimalloc-sys/c_src/mimalloc/cmake",
+    "/libmimalloc-sys/c_src/mimalloc/contrib",
+    "/libmimalloc-sys/c_src/mimalloc/doc",
+    "/libmimalloc-sys/c_src/mimalloc/docs",
+    "/libmimalloc-sys/c_src/mimalloc/ide",
+    "/libmimalloc-sys/c_src/mimalloc/test",
+    "/libmimalloc-sys/c_src/mimalloc/.git",
+]
 
 [dependencies]
-libmimalloc-sys = { path = "libmimalloc-sys", version = "0.1.44", default-features = false }
+better_mimalloc_sys = { path = "libmimalloc-sys", version = "0.1.0", default-features = false, package = "better_mimalloc_sys" }
 
 [features]
 default = []
-secure = ["libmimalloc-sys/secure"]
-override = ["libmimalloc-sys/override"]
-debug = ["libmimalloc-sys/debug"]
-debug_in_debug = ["libmimalloc-sys/debug_in_debug"]
-local_dynamic_tls = ["libmimalloc-sys/local_dynamic_tls"]
-no_thp = ["libmimalloc-sys/no_thp"]
-extended = ["libmimalloc-sys/extended"]
-v3 = ["libmimalloc-sys/v3"]
+secure = ["better_mimalloc_sys/secure"]
+override = ["better_mimalloc_sys/override"]
+debug = ["better_mimalloc_sys/debug"]
+debug_in_debug = ["better_mimalloc_sys/debug_in_debug"]
+local_dynamic_tls = ["better_mimalloc_sys/local_dynamic_tls"]
+no_thp = ["better_mimalloc_sys/no_thp"]
+extended = ["better_mimalloc_sys/extended"]
 config = ["extended"]
