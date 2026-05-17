@@ -1053,18 +1053,19 @@ mod tests {
 
     #[test]
     fn runtime_stable_option() {
-        unsafe {
-            assert_eq!(mi_option_get(mi_option_show_errors), 0);
-            mi_option_set(mi_option_show_errors, 1);
-            assert_eq!(mi_option_get(mi_option_show_errors), 1);
+        fn assert_runtime_roundtrip(option: mi_option_t) {
+            let original = unsafe { mi_option_get(option) };
+            let updated = if original == 0 { 1 } else { 0 };
 
-            assert_eq!(mi_option_get(mi_option_show_stats), 0);
-            mi_option_set(mi_option_show_stats, 1);
-            assert_eq!(mi_option_get(mi_option_show_stats), 1);
+            unsafe { mi_option_set(option, updated) };
+            assert_eq!(unsafe { mi_option_get(option) }, updated);
 
-            assert_eq!(mi_option_get(mi_option_verbose), 0);
-            mi_option_set(mi_option_verbose, 1);
-            assert_eq!(mi_option_get(mi_option_verbose), 1);
+            unsafe { mi_option_set(option, original) };
+            assert_eq!(unsafe { mi_option_get(option) }, original);
         }
+
+        assert_runtime_roundtrip(mi_option_show_errors);
+        assert_runtime_roundtrip(mi_option_show_stats);
+        assert_runtime_roundtrip(mi_option_verbose);
     }
 }

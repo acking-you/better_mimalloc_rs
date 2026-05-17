@@ -1,6 +1,6 @@
 [package]
 name = "better_mimalloc_sys"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Octavian Oncescu <octavonce@gmail.com>"]
 edition = "2018"
 keywords = ["allocator", "encrypted-heap", "performance"]

@@ -27,10 +27,10 @@
 
 extern crate better_mimalloc_sys as ffi;
 
-#[cfg(feature = "extended")]
-mod extended;
 #[cfg(feature = "config")]
 pub mod config;
+#[cfg(feature = "extended")]
+mod extended;
 
 #[cfg(feature = "config")]
 pub use config::MiMallocConfig;

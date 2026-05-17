@@ -1,4 +1,5 @@
 use std::env;
+use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -20,6 +21,25 @@ fn resolve_mimalloc_root() -> PathBuf {
     );
 }
 
+fn emit_rerun_if_changed_tree(path: &Path) {
+    if path.is_file() {
+        println!("cargo:rerun-if-changed={}", path.display());
+        return;
+    }
+
+    let entries = fs::read_dir(path)
+        .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|error| {
+            panic!(
+                "failed to read directory entry under {}: {error}",
+                path.display()
+            )
+        });
+        emit_rerun_if_changed_tree(&entry.path());
+    }
+}
+
 fn main() {
     let mut build = cc::Build::new();
 
@@ -39,6 +59,8 @@ fn main() {
             root.display()
         );
     }
+    emit_rerun_if_changed_tree(&root.join("include"));
+    emit_rerun_if_changed_tree(&src_dir);
     // Make the include directory available to consumers via the `DEP_MIMALLOC_INCLUDE_DIR`
     // environment variable.
     println!("cargo:INCLUDE_DIR={include_dir}");
@@ -91,7 +113,7 @@ fn main() {
     if env::var_os("CARGO_FEATURE_DEBUG").is_some()
         || (env::var_os("CARGO_FEATURE_DEBUG_IN_DEBUG").is_some() && cfg!(debug_assertions))
     {
-        build.define("MI_DEBUG", "3");
+        build.define("MI_DEBUG", "2");
         build.define("MI_SHOW_ERRORS", "1");
     } else {
         // Remove heavy debug assertions etc

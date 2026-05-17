@@ -1,6 +1,6 @@
 [package]
 name = "better_mimalloc_rs"
-version = "0.1.0"
+version = "0.1.2"
 authors = [
     "Octavian Oncescu <octavonce@gmail.com>",
     "Vincent Rouillé <vincent@speedy37.fr>",
@@ -28,7 +28,7 @@ exclude = [
 ]
 
 [dependencies]
-better_mimalloc_sys = { path = "libmimalloc-sys", version = "0.1.0", default-features = false, package = "better_mimalloc_sys" }
+better_mimalloc_sys = { path = "libmimalloc-sys", version = "0.1.2", default-features = false, package = "better_mimalloc_sys" }
 
 [features]
 default = []

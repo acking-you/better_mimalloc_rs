@@ -39,7 +39,11 @@ fn parse_i64(name: &str) -> Option<i64> {
 
 fn main() {
     let entries: &[(&str, &str, ValueKind)] = &[
-        ("MIMALLOC_CFG_EAGER_COMMIT", "BUILD_EAGER_COMMIT", ValueKind::Bool),
+        (
+            "MIMALLOC_CFG_EAGER_COMMIT",
+            "BUILD_EAGER_COMMIT",
+            ValueKind::Bool,
+        ),
         (
             "MIMALLOC_CFG_EAGER_COMMIT_DELAY",
             "BUILD_EAGER_COMMIT_DELAY",
