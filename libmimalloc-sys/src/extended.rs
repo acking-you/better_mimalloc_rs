@@ -1,8 +1,6 @@
 #![allow(nonstandard_style)]
 
-use core::ffi::c_void;
-
-use cty::{c_char, c_int, c_long, c_ulonglong};
+use core::ffi::{c_char, c_int, c_long, c_ulonglong, c_void};
 
 /// The maximum number of bytes which may be used as an argument to a function
 /// in the `_small` family ([`mi_malloc_small`], [`mi_zalloc_small`], etc).
@@ -300,7 +298,7 @@ extern "C" {
     /// function or stderr by default.
     ///
     /// Most detailed when using a debug build.
-    pub fn mi_stats_print(_: *mut c_void);
+    pub fn mi_stats_print(out: *mut c_void);
 
     /// Print the main statistics.
     ///

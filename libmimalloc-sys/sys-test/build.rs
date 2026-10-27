@@ -22,52 +22,24 @@ fn resolve_mimalloc_include() -> PathBuf {
 
 fn main() {
     println!("cargo:rerun-if-env-changed=MIMALLOC_SRC");
-    let secure = if env::var("CARGO_FEATURE_SECURE").is_ok() {
-        Some("secure")
-    } else {
-        None
-    };
-    let extended = if env::var("CARGO_FEATURE_EXTENDED").is_ok() {
-        Some("extended")
-    } else {
-        None
-    };
-    let mut cfg = ctest2::TestGenerator::new();
-    let include_dir = resolve_mimalloc_include();
 
+    let mut cfg = ctest::TestGenerator::new();
     cfg.header("mimalloc.h")
         .header("mimalloc-stats.h")
-        .include(include_dir)
-        .cfg("feature", secure)
-        .cfg("feature", extended)
-        .fn_cname(|rust, link_name| link_name.unwrap_or(rust).to_string())
-        // ignore whether or not the option enum is signed.
-        .skip_signededness(|c| c.ends_with("_t") || c.ends_with("_e"))
-        .type_name(|ty, _is_struct, _is_union| {
-            match ty {
-                // Special cases. We do this to avoid having both
-                // `mi_blah_{s,e}` and `mi_blah_t`.
-                "mi_heap_area_t" => "struct mi_heap_area_s".into(),
-                "mi_heap_t" => "struct mi_heap_s".into(),
-                "mi_options_t" => "enum mi_options_e".into(),
+        .include(resolve_mimalloc_include())
+        // Ignore whether or not the option enum is signed.
+        .skip_signededness(|ty| ty.ends_with("_t") || ty.ends_with("_e"))
+        // `mi_heap_area_t` is a typedef of `struct mi_heap_area_s`, so name it directly.
+        .rename_struct_ty(|ty| ty.ends_with("_t").then(|| ty.to_string()))
+        // mimalloc declares its callbacks as function types (`typedef ret mi_some_fun(...)`)
+        // and takes `mi_some_fun*` arguments, whereas Rust models them as function pointers.
+        .rename_type(|ty| ty.ends_with("_fun").then(|| format!("{ty}*")));
+    for feature in ["secure", "extended"] {
+        let var = format!("CARGO_FEATURE_{}", feature.to_ascii_uppercase());
+        if env::var_os(var).is_some() {
+            cfg.cfg("feature", Some(feature));
+        }
+    }
 
-                // This also works but requires we export `mi_heap_s` and similar
-                // in addition, so we just hardcode the above.
-
-                // t if t.ends_with("_s") => format!("struct {}", t),
-                // t if t.ends_with("_e") => format!("enum {}", t),
-                // t if t.ends_with("_t") => t.to_string(),
-
-                // mimalloc defines it's callbacks with the pointer at the
-                // location of use, e.g. `typedef ret mi_some_fun(a0 x, a1 y);`
-                // and then uses `mi_some_fun *arg` as argument types, which
-                // appears to upset ctest, which would prefer function pointers
-                // be declared as pointers, so we clean things up for it.
-                t if t.ends_with("_fun") => format!("{}*", t),
-
-                t => t.to_string(),
-            }
-        });
-
-    cfg.generate("../src/lib.rs", "all.rs");
+    ctest::generate_test(&mut cfg, "../src/lib.rs", "all.rs").expect("failed to generate tests");
 }
