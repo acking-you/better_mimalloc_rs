@@ -36,6 +36,7 @@ fn main() {
     let include_dir = resolve_mimalloc_include();
 
     cfg.header("mimalloc.h")
+        .header("mimalloc-stats.h")
         .include(include_dir)
         .cfg("feature", secure)
         .cfg("feature", extended)

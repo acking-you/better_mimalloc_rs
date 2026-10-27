@@ -1,7 +1,6 @@
 use std::env;
 use std::fs;
-use std::path::Path;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn resolve_mimalloc_root() -> PathBuf {
     if let Ok(root) = env::var("MIMALLOC_SRC") {
@@ -52,8 +51,8 @@ fn main() {
         .expect("include path is not valid UTF-8")
         .to_string();
     let src_dir = root.join("src");
-    let static_file = src_dir.join("static.c");
-    if !src_dir.is_dir() || !static_file.is_file() {
+    let static_source = src_dir.join("static.c");
+    if !src_dir.is_dir() || !static_source.is_file() {
         panic!(
             "mimalloc source is missing src/static.c in {}",
             root.display()
@@ -67,16 +66,39 @@ fn main() {
 
     build.include(&include_dir);
     build.include(&src_dir);
-    build.file(&static_file);
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target_os not defined!");
     let target_family = env::var("CARGO_CFG_TARGET_FAMILY").expect("target_family not defined!");
+    let target_env = env::var("CARGO_CFG_TARGET_ENV").unwrap_or_default();
     let target_vendor = env::var("CARGO_CFG_TARGET_VENDOR").expect("target_vendor not defined!");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").expect("target_arch not defined!");
+    let cargo_debug = env::var("DEBUG")
+        .map(|value| value == "true" || value == "1")
+        .unwrap_or(false);
+    let debug_enabled = env::var_os("CARGO_FEATURE_DEBUG").is_some()
+        || (env::var_os("CARGO_FEATURE_DEBUG_IN_DEBUG").is_some() && cargo_debug);
 
     if target_family != "windows" {
         build.flag("-Wno-error=date-time");
     }
+
+    if target_env == "msvc" {
+        // Mimalloc expects the MSVC/clang-cl build to use the C++ atomics path.
+        build.cpp(true);
+        build.std("c++17");
+        build.flag_if_supported("/Zc:__cplusplus");
+
+        let wrapper =
+            PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR not set")).join("mimalloc-static.cc");
+        let include = static_source.to_string_lossy().replace('\\', "/");
+        fs::write(&wrapper, format!("#include \"{include}\"\n"))
+            .expect("failed to write mimalloc C++ wrapper");
+        build.file(wrapper);
+    } else {
+        build.file(&static_source);
+    }
+
+    let compiler = build.get_compiler();
 
     if env::var_os("CARGO_FEATURE_OVERRIDE").is_some() {
         // Overriding malloc is only available on windows in shared mode, but we
@@ -88,10 +110,17 @@ fn main() {
             build.define("MI_OSX_ZONE", Some("1"));
             build.define("MI_OSX_INTERPOSE", Some("1"));
         }
+        if !compiler.is_like_msvc() {
+            build.flag_if_supported("-fno-builtin-malloc");
+        }
     }
 
     if env::var_os("CARGO_FEATURE_SECURE").is_some() {
         build.define("MI_SECURE", "4");
+    }
+
+    if target_os == "windows" && env::var_os("CARGO_FEATURE_WIN_DIRECT_TLS").is_some() {
+        build.define("MI_WIN_DIRECT_TLS", "1");
     }
 
     let dynamic_tls = env::var("CARGO_FEATURE_LOCAL_DYNAMIC_TLS").is_ok();
@@ -110,18 +139,16 @@ fn main() {
         build.define("MI_NO_THP", "1");
     }
 
-    if env::var_os("CARGO_FEATURE_DEBUG").is_some()
-        || (env::var_os("CARGO_FEATURE_DEBUG_IN_DEBUG").is_some() && cfg!(debug_assertions))
-    {
+    if debug_enabled {
         build.define("MI_DEBUG", "2");
         build.define("MI_SHOW_ERRORS", "1");
     } else {
-        // Remove heavy debug assertions etc
+        // Remove heavy debug assertions etc.
         build.define("MI_DEBUG", "0");
-    }
-
-    if build.get_compiler().is_like_msvc() {
-        build.cpp(true);
+        if !cargo_debug {
+            build.define("MI_BUILD_RELEASE", None);
+            build.define("NDEBUG", None);
+        }
     }
 
     build.compile("mimalloc");

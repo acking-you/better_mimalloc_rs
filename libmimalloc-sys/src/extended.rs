@@ -202,6 +202,10 @@ extern "C" {
     /// know for certain.
     pub fn mi_zalloc_small(size: usize) -> *mut c_void;
 
+    /// Free a small object. Only use to free objects from [`mi_malloc_small`]
+    /// or [`mi_zalloc_small`]. Potentially a tiny bit faster than [`mi_free`](crate::mi_free).
+    pub fn mi_free_small(p: *mut c_void);
+
     /// Return the available bytes in a memory block.
     ///
     /// The returned size can be used to call `mi_expand` successfully.
@@ -442,6 +446,11 @@ extern "C" {
     ///
     /// Note: This function is thread safe.
     pub fn mi_register_error(out: mi_error_fun, arg: *mut c_void);
+
+    /// Get the statistics for the current subprocess aggregated over all its heaps as JSON.
+    ///
+    /// Returns pointer to the buffer or NULL on failure. Use mi_free() to free the buffer if the buf parameter was NULL.
+    pub fn mi_stats_get_json(buf_size: usize, buf: *mut c_char) -> *mut c_char;
 }
 
 /// An output callback. Must be thread-safe.
@@ -768,6 +777,12 @@ extern "C" {
     /// `size` must be smaller or equal to [`MI_SMALL_SIZE_MAX`].
     pub fn mi_heap_malloc_small(heap: *mut mi_heap_t, size: usize) -> *mut c_void;
 
+    /// Equivalent to [`mi_zalloc_small`], but allocates out of the specific
+    /// heap instead of the default.
+    ///
+    /// `size` must be smaller or equal to [`MI_SMALL_SIZE_MAX`].
+    pub fn mi_heap_zalloc_small(heap: *mut mi_heap_t, size: usize) -> *mut c_void;
+
     /// Equivalent to [`mi_realloc`](crate::mi_realloc), but allocates out of
     /// the specific heap instead of the default.
     pub fn mi_heap_realloc(heap: *mut mi_heap_t, p: *mut c_void, newsize: usize) -> *mut c_void;
@@ -1002,6 +1017,16 @@ extern "C" {
         exclusive: bool,
         arena_id: *mut mi_arena_id_t,
     ) -> c_int;
+
+    /// Check if the heap page containing `p` is under-utilized.
+    ///
+    /// # Safety
+    /// Assumes the page belonging to `p` is only accessed by the calling thread.
+    pub fn mi_unsafe_heap_page_is_under_utilized(
+        heap: *mut mi_heap_t,
+        p: *mut c_void,
+        perc_threshold: usize,
+    ) -> bool;
 
     #[cfg(feature = "arena")]
     /// Manage a particular memory area for use by mimalloc.

@@ -3,8 +3,6 @@
 
 use core::ffi::c_void;
 
-extern crate libc;
-
 #[cfg(feature = "extended")]
 mod extended;
 #[cfg(feature = "extended")]
@@ -110,6 +108,7 @@ mod set_up_statics {
 
 #[cfg(test)]
 mod tests {
+    extern crate libc;
     use super::*;
 
     #[test]

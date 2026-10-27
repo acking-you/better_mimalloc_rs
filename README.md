@@ -1,13 +1,14 @@
 # better_mimalloc_rs
 
 A drop-in global allocator wrapper around the [mimalloc](https://github.com/acking-you/mimalloc) allocator.
-This fork exposes tuning knobs for RSS behavior and tracks the mimalloc **dev branch** (more aggressive than release).
+This fork exposes tuning knobs for RSS behavior and tracks the latest mimalloc **v2** release.
 
 ## Why "better"
 
 - **More tunable**: upstream Rust bindings expose very few knobs. This crate exposes compile-time and runtime options
   so you can tune purging/commit behavior and make RSS fall back faster.
-- **Tracks dev branch**: follows the latest mimalloc development branch for newer fixes and behavior (expect churn).
+- **Tracks v2 releases**: the vendored C sources follow the newest mimalloc v2 release (the line the tuning
+  options above are defined for), merged into the `acking-you/mimalloc` fork.
 
 ## Usage
 
@@ -61,6 +62,9 @@ fn main() {
 
 Call `MiMalloc::init()`/`init_with()` before any allocations for deterministic behavior.
 
+The `config` feature implies `extended`, which also provides `MiMalloc::stats_json()` for
+process-wide statistics as JSON.
+
 Compile-time environment variables (optional):
 
 ```
@@ -103,4 +107,15 @@ To enable secure mode, put in `Cargo.toml`:
 ```ini
 [dependencies]
 better_mimalloc_rs = { version = "*", features = ["secure"] }
+```
+
+## Usage with the `Allocator` API
+
+The `nightly_allocator_api` feature implements `core::alloc::Allocator` for `MiMalloc`, so it can back
+individual collections. It needs Rust 1.100 or newer, where the trait is stable; the feature name is kept
+from upstream `mimalloc`.
+
+```ini
+[dependencies]
+better_mimalloc_rs = { version = "*", features = ["nightly_allocator_api"] }
 ```

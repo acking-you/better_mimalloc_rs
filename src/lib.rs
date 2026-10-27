@@ -3,7 +3,7 @@
 #![no_std]
 
 //! A drop-in global allocator wrapper around the [mimalloc](https://github.com/acking-you/mimalloc) allocator.
-//! This fork exposes tuning knobs for RSS behavior and tracks the mimalloc dev branch.
+//! This fork exposes tuning knobs for RSS behavior and tracks the latest mimalloc v2 release.
 //!
 //! ## Usage
 //! ```rust,ignore
@@ -20,7 +20,7 @@
 //! own benchmarks.
 //!
 //! To enable secure mode, put in `Cargo.toml`:
-//! ```rust,ignore
+//! ```toml
 //! [dependencies]
 //! better_mimalloc_rs = { version = "*", features = ["secure"] }
 //! ```
@@ -34,6 +34,9 @@ mod extended;
 
 #[cfg(feature = "config")]
 pub use config::MiMallocConfig;
+
+#[cfg(feature = "nightly_allocator_api")]
+mod nightly_allocator_api;
 
 use core::alloc::{GlobalAlloc, Layout};
 use core::ffi::c_void;
