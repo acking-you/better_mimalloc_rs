@@ -9,7 +9,6 @@ description = "Sys crate wrapping mimalloc v2 (fork for better_mimalloc_rs)"
 license = "MIT"
 links = "mimalloc"
 repository = "https://github.com/acking-you/better_mimalloc_rs"
-homepage = "https://github.com/acking-you/better_mimalloc_rs"
 documentation = "https://docs.rs/better_mimalloc_sys"
 exclude = [
     "/c_src/mimalloc/bin",

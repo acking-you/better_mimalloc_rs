@@ -14,7 +14,6 @@ license = "MIT"
 readme = "README.md"
 build = "build.rs"
 repository = "https://github.com/acking-you/better_mimalloc_rs"
-homepage = "https://github.com/acking-you/better_mimalloc_rs"
 documentation = "https://docs.rs/better_mimalloc_rs"
 exclude = [
     "/libmimalloc-sys/c_src/mimalloc/bin",

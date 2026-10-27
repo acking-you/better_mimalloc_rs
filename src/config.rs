@@ -6,7 +6,7 @@ include!(concat!(env!("OUT_DIR"), "/mimalloc_config.rs"));
 
 /// Configuration for mimalloc runtime options.
 ///
-/// Call [`apply`] before the first allocation for deterministic behavior.
+/// Call [`MiMallocConfig::apply`] before the first allocation for deterministic behavior.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MiMallocConfig {
     pub eager_commit: Option<bool>,

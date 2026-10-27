@@ -45,10 +45,8 @@ impl core::ops::Deref for StatsJson {
     type Target = CStr;
 
     fn deref(&self) -> &Self::Target {
-        unsafe {
-            let cstr = CStr::from_ptr(self.inner.as_ptr());
-            &cstr
-        }
+        // Safety: mimalloc returned a NUL-terminated buffer that lives until `drop`.
+        unsafe { CStr::from_ptr(self.inner.as_ptr()) }
     }
 }
 

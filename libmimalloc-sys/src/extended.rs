@@ -610,7 +610,7 @@ extern "C" {
     /// These options are not exposed as constants for stability reasons,
     /// however you can still use them as arguments to this and other
     /// `mi_option_` functions if needed, see the mimalloc documentation for
-    /// details: https://microsoft.github.io/mimalloc/group__options.html
+    /// details: <https://microsoft.github.io/mimalloc/group__options.html>
     ///
     /// Note: this function is not thread safe.
     pub fn mi_option_get(option: mi_option_t) -> c_long;
@@ -1037,10 +1037,10 @@ extern "C" {
     ///
     /// - `start` Start of the memory area
     /// - `size` The size of the memory area. Must be large than `MI_ARENA_BLOCK_SIZE` (e.g. 64MB
-    ///          on x86_64 machines).
+    ///   on x86_64 machines).
     /// - `commit` Set true if the memory range is already commited.
     /// - `is_large` Set true if the memory range consists of large files, or if the memory should
-    ///              not be decommitted or protected (like rdma etc.).
+    ///   not be decommitted or protected (like rdma etc.).
     /// - `is_zero` Set true if the memory range consists only of zeros.
     /// - `numa_node` Possible associated numa node or `-1`.
     /// - `exclusive` Only allow allocations if specifically for this arena.
